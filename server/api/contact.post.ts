@@ -2,6 +2,15 @@ import { readBody } from 'h3'
 import { kvGet, kvSet } from '../utils/kv'
 import { Resend } from 'resend'
 
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;')
+}
+
 interface ContactMessage {
   id: string
   name: string
@@ -67,18 +76,18 @@ export default defineEventHandler(async (event) => {
       await resend.emails.send({
         from: 'noreply@jjzettler.com',
         to: toEmail,
-        subject: `New message from ${msg.name}`,
+        subject: `New message from ${escapeHtml(msg.name)}`,
         html: `
           <h2>New Contact Message</h2>
           <table cellpadding="8" style="border-collapse:collapse; font-family:sans-serif;">
-            <tr><td><strong>Name:</strong></td><td>${msg.name}</td></tr>
-            <tr><td><strong>Email:</strong></td><td>${msg.email}</td></tr>
-            ${msg.subject ? `<tr><td><strong>Subject:</strong></td><td>${msg.subject}</td></tr>` : ''}
+            <tr><td><strong>Name:</strong></td><td>${escapeHtml(msg.name)}</td></tr>
+            <tr><td><strong>Email:</strong></td><td>${escapeHtml(msg.email)}</td></tr>
+            ${msg.subject ? `<tr><td><strong>Subject:</strong></td><td>${escapeHtml(msg.subject)}</td></tr>` : ''}
             <tr><td><strong>Date:</strong></td><td>${new Date(msg.date).toLocaleString()}</td></tr>
           </table>
           <hr />
           <h3>Message:</h3>
-          <p style="white-space:pre-wrap; font-family:sans-serif;">${msg.message}</p>
+          <p style="white-space:pre-wrap; font-family:sans-serif;">${escapeHtml(msg.message)}</p>
         `,
       })
     }

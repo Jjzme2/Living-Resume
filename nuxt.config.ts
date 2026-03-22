@@ -55,7 +55,7 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     adminPassword:       process.env.NUXT_ADMIN_PASSWORD ?? '',
-    jwtSecret:           process.env.NUXT_JWT_SECRET ?? 'fallback-dev-secret-change-in-production',
+    jwtSecret:           process.env.NUXT_JWT_SECRET ?? '',
     firebaseProjectId:   process.env.FIREBASE_PROJECT_ID ?? process.env.VITE_FIREBASE_PROJECT_ID ?? '',
     firebaseClientEmail: process.env.FIREBASE_CLIENT_EMAIL ?? '',
     firebasePrivateKey:  process.env.FIREBASE_PRIVATE_KEY ?? '',

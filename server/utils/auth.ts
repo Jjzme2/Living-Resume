@@ -10,6 +10,9 @@ const REFRESH_AFTER = 60 * 60 * 24       // 1 day
 
 function getSecret(): Uint8Array {
   const { jwtSecret } = useRuntimeConfig()
+  if (!jwtSecret) {
+    throw createError({ statusCode: 500, statusMessage: 'NUXT_JWT_SECRET is not configured' })
+  }
   return new TextEncoder().encode(jwtSecret)
 }
 
