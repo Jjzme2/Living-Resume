@@ -1,4 +1,4 @@
-/** Admin endpoint — saves the public theme choice. */
+/** Admin endpoint — saves the public theme choice(s). */
 import { readBody } from 'h3'
 import { kvGet, kvSet } from '../../utils/kv'
 import { siteSettings } from '~/config/site'
@@ -9,14 +9,16 @@ const VALID_THEMES = ['midnight', 'glass', 'aero', 'noir', 'slate', 'dawn', 'dre
 export default defineEventHandler(async (event) => {
   await requireAuth(event)
 
-  const body = await readBody<{ theme?: string }>(event)
+  const body = await readBody<{ theme?: string; themeAlt?: string }>(event)
   if (!body?.theme || !VALID_THEMES.includes(body.theme)) {
     throw createError({ statusCode: 400, statusMessage: 'Invalid theme' })
   }
+  const themeAlt = body.themeAlt && VALID_THEMES.includes(body.themeAlt) ? body.themeAlt : body.theme
 
   const existing = (await kvGet<Record<string, unknown>>('site:settings')) ?? { ...siteSettings }
-  existing.theme = body.theme
+  existing.theme    = body.theme
+  existing.themeAlt = themeAlt
   await kvSet('site:settings', existing)
 
-  return { ok: true, theme: body.theme }
+  return { ok: true, theme: body.theme, themeAlt }
 })

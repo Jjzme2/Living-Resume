@@ -60,10 +60,10 @@ export const person = {
   name: 'Jj Zettler',
   fullName: 'John Zettler Jr',
   initials: 'JZ',
-  title: 'Developer & Entrepreneur',
-  tagline: '',           // e.g. "Building things people love."
-  location: '',          // e.g. "Northeast Ohio"
-  email: '',             // e.g. "jj@example.com"
+  title: '',
+  tagline: 'Building things people love',           // e.g. "Building things people love."
+  location: 'Kankakee County, Illinois',          // e.g. "Northeast Ohio"
+  email: 'Jjzettler@gmail.com',             // e.g. "jj@example.com"
   phone: '',             // e.g. "+1 (555) 000-0000"
   bio: '',               // 2–4 sentence personal statement for About section
   avatarUrl: '',         // path to /public/ image or external URL
@@ -73,7 +73,7 @@ export const person = {
 // ── Business / LLC ───────────────────────────────────────────────
 
 export const business = {
-  name: '',              // e.g. "Zettler Solutions LLC"
+  name: 'ILYTAT LLC',              // e.g. "Zettler Solutions LLC"
   tagline: '',           // e.g. "Web solutions for small businesses."
   description: '',       // longer description
   url: '',               // business website if separate
@@ -164,10 +164,10 @@ export const siteSettings = {
   showBlog:      true,
   showContact:   true,
   showServices:  true,
-  showInterview: true,  // AI-powered "Ask Me Anything" chat
+  showInterview: false,  // AI-powered "Ask Me Anything" chat
 
   // Nav
-  siteUrl: 'https://jjzettler.com',   // update when domain is live
+  siteUrl: 'https://ilytat.com',   // update when domain is live
 
   // Copyright
   copyrightYear: 2026,

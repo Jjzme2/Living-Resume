@@ -91,8 +91,9 @@ const nonNameIdentities = identities.slice(1)
 const shuffledQueue = [...nonNameIdentities].sort(() => Math.random() - 0.5)
 const orderedIdentities = [...shuffledQueue, identities[0]]
 
-// Pre-compute random orbit positions — distributed around an ellipse
-const orbitPositions = computeOrbitPositions(nonNameIdentities.length)
+const TOTAL_CHIPS  = nonNameIdentities.length
+// Shuffle sector indices so chips don't appear in clockwise order
+const sectorOrder  = Array.from({ length: TOTAL_CHIPS }, (_, i) => i).sort(() => Math.random() - 0.5)
 
 interface Chip {
   id: number
@@ -102,31 +103,77 @@ interface Chip {
   placed: boolean
 }
 
-const chips = ref<Chip[]>([])
+const chips   = ref<Chip[]>([])
 const settled = ref(false)
-let chipIndex = 0
+let   chipIndex = 0
 
-function computeOrbitPositions(count: number): Array<{ x: number; y: number }> {
-  const positions: Array<{ x: number; y: number }> = []
-  const sectorAngle = (Math.PI * 2) / count
-  for (let i = 0; i < count; i++) {
-    // Distribute evenly with random jitter, starting from top
-    const baseAngle = sectorAngle * i - Math.PI / 2
-    const jitter = (Math.random() - 0.5) * sectorAngle * 0.65
-    const angle = baseAngle + jitter
-    const radius = 145 + Math.random() * 105 // 145–250px from center
-    const x = Math.round(Math.cos(angle) * radius * 2.1) // wide ellipse
-    const y = Math.round(Math.sin(angle) * radius * 0.8)
-    positions.push({ x, y })
+// ── Chip sizing helpers ─────────────────────────────────────────────
+// text-transform:uppercase + monospace ~0.65rem + letter-spacing:0.12em
+const CHAR_W   = 8     // px per character (estimated)
+const PAD_H    = 16    // total horizontal padding
+const CHIP_H   = 22    // chip height px
+const CHIP_GAP = 16    // min clear space between chip edges
+
+function chipW(text: string) { return text.length * CHAR_W + PAD_H }
+
+// ── Exclusion: hero name rectangle around center ─────────────────────
+// clamp(3rem,9vw,7rem) → at 1200px ≈ 108px font. Name at longest ~350px wide.
+// Add generous margin so no chip clips the text at any viewport.
+const NAME_HALF_W = process.client ? Math.min(window.innerWidth * 0.28, 310) : 260
+const NAME_HALF_H = 54
+
+// ── Collision check between two chips ───────────────────────────────
+interface Placed { x: number; y: number; w: number }
+const placedChips: Placed[] = []
+
+function collides(ax: number, ay: number, aw: number, bx: number, by: number, bw: number) {
+  return (
+    Math.abs(ax - bx) < (aw + bw) / 2 + CHIP_GAP &&
+    Math.abs(ay - by) < CHIP_H + CHIP_GAP
+  )
+}
+
+// ── Find a non-overlapping position for a chip ───────────────────────
+function findPosition(text: string, sectorIdx: number): { x: number; y: number } {
+  const cw = chipW(text)
+  const sectorAngle = (Math.PI * 2) / TOTAL_CHIPS
+  const baseAngle   = sectorAngle * sectorIdx - Math.PI / 2
+
+  const MAX_TRIES = 60
+  for (let t = 0; t < MAX_TRIES; t++) {
+    // Tighten jitter as tries increase so we lock onto the sector
+    const jitterRange = sectorAngle * Math.max(0.55 - t * 0.01, 0.1)
+    const angle  = baseAngle + (Math.random() - 0.5) * jitterRange
+    // Push radius out with each failed try
+    const radius = 155 + Math.random() * 80 + t * 5
+    const x = Math.round(Math.cos(angle) * radius * 2.0)
+    const y = Math.round(Math.sin(angle) * radius * 0.78)
+
+    // Reject if inside name exclusion zone
+    if (Math.abs(x) < NAME_HALF_W + cw / 2 + CHIP_GAP &&
+        Math.abs(y) < NAME_HALF_H + CHIP_H  + CHIP_GAP) continue
+
+    // Reject if overlapping an already-placed chip
+    if (placedChips.some(p => collides(x, y, cw, p.x, p.y, p.w))) continue
+
+    return { x, y }
   }
-  // Shuffle positions so identities don't appear in angular order
-  return positions.sort(() => Math.random() - 0.5)
+
+  // Fallback: push well outside at sector angle
+  const r = 380 + placedChips.length * 18
+  return {
+    x: Math.round(Math.cos(baseAngle) * r * 2.0),
+    y: Math.round(Math.sin(baseAngle) * r * 0.78),
+  }
 }
 
 function onTextComplete(text: string) {
-  if (chipIndex >= orbitPositions.length) return
-  const pos = orbitPositions[chipIndex++]
+  if (chipIndex >= TOTAL_CHIPS) return
+  const sectorIdx = sectorOrder[chipIndex]
+  const pos = findPosition(text, sectorIdx)
+  placedChips.push({ x: pos.x, y: pos.y, w: chipW(text) })
   const chip: Chip = { id: Date.now() + chipIndex, text, x: pos.x, y: pos.y, placed: false }
+  chipIndex++
   chips.value.push(chip)
   // Trigger animation on next frame
   nextTick(() => requestAnimationFrame(() => { chip.placed = true }))

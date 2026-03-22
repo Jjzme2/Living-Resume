@@ -2,34 +2,37 @@
    Design Tokens
    ================================================================ */
 :root {
-  /* Backgrounds */
-  --bg-base:       #04060f;
-  --bg-elevated:   #07091a;
-  --bg-surface:    rgba(255, 255, 255, 0.030);
-  --bg-surface-hv: rgba(255, 255, 255, 0.055);
+  /* Backgrounds — midnight: deep cosmos, blue-black void */
+  --bg-base:       #030610;
+  --bg-elevated:   #060a1c;
+  --bg-surface:    rgba(94, 234, 212, 0.032);
+  --bg-surface-hv: rgba(94, 234, 212, 0.060);
 
-  /* Borders */
-  --border-xs: rgba(255, 255, 255, 0.045);
-  --border-sm: rgba(255, 255, 255, 0.08);
-  --border-md: rgba(255, 255, 255, 0.14);
+  /* Borders — teal-tinted for midnight */
+  --border-xs: rgba(94, 234, 212, 0.07);
+  --border-sm: rgba(94, 234, 212, 0.12);
+  --border-md: rgba(94, 234, 212, 0.20);
 
   /* Text */
   --text-1: #eaeef8;
   --text-2: #8892a8;
   --text-3: #444f66;
 
-  /* Accent – teal-cyan */
+  /* Accent – bioluminescent teal */
   --accent:      #5eead4;
   --accent-dim:  rgba(94, 234, 212, 0.15);
-  --accent-glow: rgba(94, 234, 212, 0.10);
+  --accent-glow: rgba(94, 234, 212, 0.12);
 
   /* Accent 2 – soft indigo */
   --accent2:      #818cf8;
   --accent2-dim:  rgba(129, 140, 248, 0.15);
 
   /* Gradients */
-  --grad-accent: linear-gradient(135deg, #5eead4 0%, #818cf8 100%);
-  --grad-radial: radial-gradient(ellipse 90% 55% at 50% -5%, rgba(94, 234, 212, 0.09) 0%, transparent 70%);
+  --grad-accent: linear-gradient(135deg, #5eead4 0%, #38bdf8 45%, #818cf8 100%);
+  --grad-radial:
+    radial-gradient(ellipse 100% 60% at 50%  -8%, rgba( 94,234,212,0.11) 0%, transparent 65%),
+    radial-gradient(ellipse  50% 40% at 12%  55%, rgba(129,140,248,0.08) 0%, transparent 50%),
+    radial-gradient(ellipse  40% 30% at 88%  70%, rgba( 56,189,248,0.07) 0%, transparent 45%);
 
   /* Typography */
   --font-display: 'Space Grotesk', system-ui, sans-serif;
@@ -66,9 +69,9 @@
   --t-xslow: 0.65s cubic-bezier(0.0, 0.0, 0.2, 1);
 
   /* Shadows */
-  --shadow-glow:  0 0 48px var(--accent-glow), 0 0 80px rgba(94, 234, 212, 0.04);
-  --shadow-card:  0 1px 2px rgba(0,0,0,0.5), 0 0 0 1px var(--border-xs);
-  --shadow-float: 0 20px 60px rgba(0,0,0,0.4);
+  --shadow-glow:  0 0 60px rgba(94,234,212,0.12), 0 0 120px rgba(94,234,212,0.05);
+  --shadow-card:  0 2px 4px rgba(0,0,0,0.55), 0 0 0 1px rgba(94,234,212,0.07), inset 0 1px 0 rgba(94,234,212,0.04);
+  --shadow-float: 0 20px 60px rgba(0,0,0,0.45), 0 0 40px rgba(94,234,212,0.03);
 
   /* Layout */
   --max-w:      1160px;

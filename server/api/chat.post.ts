@@ -1,6 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk'
-import { readBody } from 'h3'
-import { getSiteData, kvGet } from '../utils/kv'
+import { readBody, getRequestIP } from 'h3'
+import { getSiteData, kvGet, kvSet } from '../utils/kv'
+import { checkRateLimit } from '../utils/rateLimit'
 import type { InterviewPersona } from './admin/interview-persona.get'
 import { DEFAULT_PERSONA } from './admin/interview-persona.get'
 
@@ -136,6 +137,13 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'Messages are required' })
   }
 
+  // Rate limit: 20 requests per IP per minute
+  const ip = getRequestIP(event, { xForwardedFor: true }) ?? 'unknown'
+  const rl = await checkRateLimit(`chat:${ip}`, 20, 60 * 1000)
+  if (!rl.allowed) {
+    throw createError({ statusCode: 429, statusMessage: 'Too many requests. Please slow down.' })
+  }
+
   const apiKey = process.env.ANTHROPIC_API_KEY
   if (!apiKey) {
     throw createError({ statusCode: 422, statusMessage: 'Chat is not available right now' })
@@ -165,6 +173,26 @@ export default defineEventHandler(async (event) => {
 
     const content = response.content[0]
     if (content.type !== 'text') throw new Error('Unexpected response type')
+
+    // Log token usage asynchronously (don't block the response)
+    const { input_tokens, output_tokens } = response.usage
+    const today = new Date().toISOString().slice(0, 10)
+    Promise.all([
+      kvGet<{ input_tokens: number; output_tokens: number; calls: number }>('chat:usage:total').then((prev) =>
+        kvSet('chat:usage:total', {
+          input_tokens:  (prev?.input_tokens  ?? 0) + input_tokens,
+          output_tokens: (prev?.output_tokens ?? 0) + output_tokens,
+          calls:         (prev?.calls         ?? 0) + 1,
+        }),
+      ),
+      kvGet<{ input_tokens: number; output_tokens: number; calls: number }>(`chat:usage:daily:${today}`).then((prev) =>
+        kvSet(`chat:usage:daily:${today}`, {
+          input_tokens:  (prev?.input_tokens  ?? 0) + input_tokens,
+          output_tokens: (prev?.output_tokens ?? 0) + output_tokens,
+          calls:         (prev?.calls         ?? 0) + 1,
+        }),
+      ),
+    ]).catch((err) => console.error('[chat] Usage logging error:', err))
 
     return { content: content.text }
   } catch (err) {

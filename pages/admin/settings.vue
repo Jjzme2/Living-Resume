@@ -8,29 +8,79 @@
     <div v-else>
       <!-- Theme Selector -->
       <div class="admin-card" style="margin-bottom: var(--sp-6)">
-        <h3 class="card-heading">Public Theme</h3>
-        <p class="theme-hint">Choose the theme your visitors see. You can preview any theme right now — it only becomes public when you click Save.</p>
-        <div class="theme-grid">
-          <button
-            v-for="t in THEMES"
-            :key="t.id"
-            class="theme-swatch"
-            :class="{ 'theme-swatch--active': previewTheme === t.id }"
-            :style="{ '--swatch-bg': t.bg, '--swatch-accent': t.accent }"
-            @click="previewTheme = t.id; applyTheme(t.id)"
-          >
-            <span class="swatch-dot" />
-            <span class="swatch-name">{{ t.label }}</span>
-            <span class="swatch-desc">{{ t.desc }}</span>
-          </button>
+        <h3 class="card-heading">Visitor Themes</h3>
+        <p class="theme-hint">
+          Choose up to two themes your visitors can switch between. If both are the same, no toggle is shown to visitors.
+          Clicking a swatch previews it live on this page.
+        </p>
+
+        <!-- Preview indicator -->
+        <Transition name="preview-fade">
+          <div v-if="previewingTheme" class="preview-banner">
+            <span class="preview-dot" :style="{ background: THEMES.find(t => t.id === previewingTheme)?.accent }" />
+            Previewing <strong>{{ THEMES.find(t => t.id === previewingTheme)?.label }}</strong>
+            — click to set as Primary or Alternate
+          </div>
+        </Transition>
+
+        <div class="theme-pair">
+          <!-- Primary -->
+          <div class="theme-slot">
+            <div class="theme-slot-header">
+              <span class="slot-badge slot-badge--primary">1</span>
+              <span class="slot-label">Primary</span>
+            </div>
+            <div class="theme-grid" @mouseleave="clearHoverPreview">
+              <button
+                v-for="t in THEMES"
+                :key="t.id"
+                class="theme-swatch"
+                :class="{ 'theme-swatch--active': primaryTheme === t.id }"
+                :style="{ '--swatch-bg': t.bg, '--swatch-accent': t.accent }"
+                @mouseenter="hoverPreview(t.id)"
+                @click="setPrimary(t.id)"
+              >
+                <span class="swatch-dot" />
+                <span class="swatch-name">{{ t.label }}</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Alternate -->
+          <div class="theme-slot">
+            <div class="theme-slot-header">
+              <span class="slot-badge slot-badge--alt">2</span>
+              <span class="slot-label">Alternate</span>
+              <span class="slot-hint">optional — gives visitors a toggle</span>
+            </div>
+            <div class="theme-grid" @mouseleave="clearHoverPreview">
+              <button
+                v-for="t in THEMES"
+                :key="t.id"
+                class="theme-swatch"
+                :class="{ 'theme-swatch--active': altTheme === t.id }"
+                :style="{ '--swatch-bg': t.bg, '--swatch-accent': t.accent }"
+                @mouseenter="hoverPreview(t.id)"
+                @click="setAlt(t.id)"
+              >
+                <span class="swatch-dot" />
+                <span class="swatch-name">{{ t.label }}</span>
+              </button>
+            </div>
+          </div>
         </div>
+
         <div class="form-actions" style="padding-top: var(--sp-4); margin-top: var(--sp-4); border-top: 1px solid var(--border-xs)">
           <span class="theme-current">
-            Live: <strong>{{ publicThemeLabel }}</strong>
+            Live:
+            <strong>{{ THEMES.find(t => t.id === liveTheme.primary)?.label ?? liveTheme.primary }}</strong>
+            <template v-if="liveTheme.primary !== liveTheme.alt">
+              + <strong>{{ THEMES.find(t => t.id === liveTheme.alt)?.label ?? liveTheme.alt }}</strong>
+            </template>
           </span>
-          <button class="btn btn-primary" :disabled="savingTheme || previewTheme === publicTheme" @click="saveTheme">
+          <button class="btn btn-primary" :disabled="savingTheme" @click="saveTheme">
             <span v-if="savingTheme" class="btn-spinner" />
-            {{ savingTheme ? 'Saving…' : `Set "${THEMES.find(t => t.id === previewTheme)?.label}" as Public` }}
+            {{ savingTheme ? 'Saving…' : 'Save Themes' }}
           </button>
         </div>
       </div>
@@ -129,20 +179,46 @@ definePageMeta({ middleware: 'admin', layout: 'admin' })
 const toast = useState<{ message: string; type: 'success' | 'error' } | null>('admin-toast')
 
 // ── Theme ─────────────────────────────────────────────────────────
-const { THEMES, currentTheme, applyTheme, setPublicTheme } = useTheme()
-const publicTheme  = ref<string>('midnight')
-const previewTheme = ref<string>('midnight')
-const savingTheme  = ref(false)
-const publicThemeLabel = computed(() => THEMES.find(t => t.id === publicTheme.value)?.label ?? publicTheme.value)
+const { THEMES, applyTheme, setPublicThemes } = useTheme()
+const primaryTheme    = ref<string>('midnight')
+const altTheme        = ref<string>('midnight')
+const liveTheme       = ref<{ primary: string; alt: string }>({ primary: 'midnight', alt: 'midnight' })
+const savingTheme     = ref(false)
+const previewingTheme = ref<string | null>(null)
+const lastCommitted   = ref<string>('midnight') // last theme applied via click
+
+function hoverPreview(id: string) {
+  previewingTheme.value = id
+  applyTheme(id)
+}
+
+function clearHoverPreview() {
+  previewingTheme.value = null
+  applyTheme(lastCommitted.value)
+}
+
+function setPrimary(id: string) {
+  primaryTheme.value = id
+  lastCommitted.value = id
+  applyTheme(id)
+}
+
+function setAlt(id: string) {
+  altTheme.value = id
+  lastCommitted.value = id
+  applyTheme(id)
+}
 
 async function saveTheme() {
   savingTheme.value = true
   try {
-    await setPublicTheme(previewTheme.value)
-    publicTheme.value = previewTheme.value
-    toast.value = { message: `Theme set to ${publicThemeLabel.value}`, type: 'success' }
+    await setPublicThemes(primaryTheme.value, altTheme.value)
+    liveTheme.value = { primary: primaryTheme.value, alt: altTheme.value }
+    const p = THEMES.find(t => t.id === primaryTheme.value)?.label ?? primaryTheme.value
+    const a = THEMES.find(t => t.id === altTheme.value)?.label ?? altTheme.value
+    toast.value = { message: primaryTheme.value === altTheme.value ? `Theme set to ${p}` : `Themes set: ${p} + ${a}`, type: 'success' }
   } catch {
-    toast.value = { message: 'Failed to save theme', type: 'error' }
+    toast.value = { message: 'Failed to save themes', type: 'error' }
   } finally {
     savingTheme.value = false
   }
@@ -156,6 +232,7 @@ interface SiteSettings {
   showBlog: boolean
   showContact: boolean
   showServices: boolean
+  showInterview: boolean
   siteUrl: string
   copyrightYear: number
 }
@@ -170,6 +247,7 @@ const savingBusiness = ref(false)
 const settings = reactive<SiteSettings>({
   showAbout: true, showSkills: true, showExperience: true,
   showProjects: true, showBlog: true, showContact: true, showServices: true,
+  showInterview: false,
   siteUrl: '', copyrightYear: 2026,
 })
 
@@ -185,6 +263,7 @@ const toggles = [
   { key: 'showBlog', label: 'Blog Section', desc: 'Show the Blog preview section' },
   { key: 'showContact', label: 'Contact Section', desc: 'Show the Contact section' },
   { key: 'showServices', label: 'Services Section', desc: 'Show the Services section' },
+  { key: 'showInterview', label: 'Ask Me Anything (AI Chat)', desc: 'Enable the AI-powered interview chat — requires Anthropic API credits' },
 ]
 
 onMounted(async () => {
@@ -192,9 +271,12 @@ onMounted(async () => {
     const data = await $fetch<{ siteSettings: SiteSettings & { theme?: string }; business: BusinessInfo }>('/api/admin/data')
     Object.assign(settings, data.siteSettings)
     Object.assign(business, { ...data.business, services: [...(data.business.services || [])] })
-    const savedTheme = data.siteSettings.theme ?? 'midnight'
-    publicTheme.value  = savedTheme
-    previewTheme.value = savedTheme
+    const savedPrimary = (data.siteSettings as Record<string, unknown>).theme    as string ?? 'midnight'
+    const savedAlt     = (data.siteSettings as Record<string, unknown>).themeAlt as string ?? savedPrimary
+    primaryTheme.value  = savedPrimary
+    altTheme.value      = savedAlt
+    liveTheme.value     = { primary: savedPrimary, alt: savedAlt }
+    lastCommitted.value = savedPrimary
   } catch {
     toast.value = { message: 'Failed to load settings', type: 'error' }
   } finally {
@@ -278,7 +360,20 @@ async function saveBusiness() {
 @keyframes spin { to { transform: rotate(360deg); } }
 /* Theme selector */
 .theme-hint { font-size: 0.82rem; color: var(--text-3); margin-bottom: var(--sp-4); max-width: none; line-height: 1.5; }
-.theme-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--sp-3); }
+.preview-banner { display: flex; align-items: center; gap: var(--sp-2); padding: var(--sp-3) var(--sp-4); background: var(--accent-dim); border: 1px solid rgba(94,234,212,0.2); border-radius: var(--r-md); font-size: 0.82rem; color: var(--text-2); margin-bottom: var(--sp-4); }
+.preview-banner strong { color: var(--accent); }
+.preview-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; box-shadow: 0 0 6px currentColor; }
+.preview-fade-enter-active, .preview-fade-leave-active { transition: opacity 0.15s, transform 0.15s; }
+.preview-fade-enter-from, .preview-fade-leave-to { opacity: 0; transform: translateY(-4px); }
+.theme-pair { display: flex; flex-direction: column; gap: var(--sp-6); }
+.theme-slot { display: flex; flex-direction: column; gap: var(--sp-3); }
+.theme-slot-header { display: flex; align-items: center; gap: var(--sp-2); margin-bottom: var(--sp-1); }
+.slot-badge { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; font-size: 0.72rem; font-weight: 700; font-family: var(--font-mono); flex-shrink: 0; }
+.slot-badge--primary { background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(94,234,212,0.3); }
+.slot-badge--alt     { background: rgba(129,140,248,0.10); color: #818cf8; border: 1px solid rgba(129,140,248,0.3); }
+.slot-label { font-size: 0.82rem; font-weight: 600; color: var(--text-2); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.06em; }
+.slot-hint  { font-size: 0.72rem; color: var(--text-3); }
+.theme-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--sp-2); }
 .theme-swatch {
   display: flex; flex-direction: column; gap: var(--sp-1);
   padding: var(--sp-4); background: var(--swatch-bg, var(--bg-surface));
@@ -299,10 +394,10 @@ async function saveBusiness() {
   box-shadow: 0 0 8px var(--swatch-accent, var(--accent));
   margin-bottom: var(--sp-1);
 }
-.swatch-name { font-size: 0.82rem; font-weight: 600; color: #fff; }
-.theme-swatch[style*="f1f5fb"] .swatch-name { color: #0d1117; }
-.swatch-desc { font-size: 0.68rem; color: rgba(255,255,255,0.5); line-height: 1.3; max-width: none; }
-.theme-swatch[style*="f1f5fb"] .swatch-desc { color: rgba(0,0,0,0.45); }
+.swatch-name { font-size: 0.78rem; font-weight: 600; color: #fff; }
+/* Dawn swatch: dark text on light bg */
+.theme-swatch[style*="fef8f0"] .swatch-name,
+.theme-swatch[style*="fef8f0"] { color: #1c0e06; }
 .theme-current { font-size: 0.8rem; color: var(--text-3); font-family: var(--font-mono); align-self: center; }
 .theme-current strong { color: var(--text-2); }
 @media (max-width: 600px) { .form-grid, .field-row { grid-template-columns: 1fr; } .col-span-2 { grid-column: span 1; } .service-row { flex-wrap: wrap; } .theme-grid { grid-template-columns: repeat(2, 1fr); } }

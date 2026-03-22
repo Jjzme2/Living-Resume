@@ -22,6 +22,40 @@
 
       <!-- CTA -->
       <div class="header-actions">
+        <!-- Theme toggle: only shown when admin has configured two distinct themes -->
+        <button
+          v-if="hasAltTheme"
+          class="theme-toggle no-print"
+          :aria-label="`Switch to ${nextTheme?.label} theme`"
+          :title="`Switch to ${nextTheme?.label}`"
+          @click="togglePublicTheme"
+        >
+          <span class="tt-option" :class="{ 'tt-option--active': currentTheme === primaryTheme?.id }">
+            <span class="tt-dot" :style="{ background: primaryTheme?.accent }" />
+            <span class="tt-name">{{ primaryTheme?.label }}</span>
+          </span>
+          <svg class="tt-swap" width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M1 5h10M8 2l3 3-3 3M15 11H5M8 8l-3 3 3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span class="tt-option" :class="{ 'tt-option--active': currentTheme === altTheme?.id }">
+            <span class="tt-dot" :style="{ background: altTheme?.accent }" />
+            <span class="tt-name">{{ altTheme?.label }}</span>
+          </span>
+        </button>
+
+        <!-- Command palette trigger -->
+        <button
+          class="cmd-btn no-print"
+          title="Command palette (⌘K)"
+          aria-label="Open command palette"
+          @click="paletteToggle"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M18 3a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3H6a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3V6a3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3h12a3 3 0 0 0 3-3 3 3 0 0 0-3-3z"/>
+          </svg>
+          <span class="cmd-label">⌘K</span>
+        </button>
+
         <NuxtLink to="/resume" class="btn btn-ghost btn-sm no-print">Resume</NuxtLink>
       </div>
 
@@ -50,6 +84,31 @@
         >
           {{ link.label }}
         </NuxtLink>
+        <div class="mobile-tools">
+          <button
+            v-if="hasAltTheme"
+            class="mobile-theme-toggle"
+            @click="togglePublicTheme(); mobileOpen = false"
+          >
+            <span class="tt-option" :class="{ 'tt-option--active': currentTheme === primaryTheme?.id }">
+              <span class="tt-dot" :style="{ background: primaryTheme?.accent }" />
+              <span class="tt-name">{{ primaryTheme?.label }}</span>
+            </span>
+            <svg class="tt-swap" width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M1 5h10M8 2l3 3-3 3M15 11H5M8 8l-3 3 3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span class="tt-option" :class="{ 'tt-option--active': currentTheme === altTheme?.id }">
+              <span class="tt-dot" :style="{ background: altTheme?.accent }" />
+              <span class="tt-name">{{ altTheme?.label }}</span>
+            </span>
+          </button>
+          <button class="cmd-btn" @click="paletteToggle(); mobileOpen = false">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 3a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3H6a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3V6a3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3h12a3 3 0 0 0 3-3 3 3 0 0 0-3-3z"/>
+            </svg>
+            <span>Command Palette</span>
+          </button>
+        </div>
         <NuxtLink to="/resume" class="btn btn-primary btn-sm" @click="mobileOpen = false">
           Resume
         </NuxtLink>
@@ -64,6 +123,14 @@ const scrolled = computed(() => scrollY.value > 40)
 const mobileOpen = ref(false)
 
 const store = useSiteStore()
+const { currentTheme, publicThemes, hasAltTheme, togglePublicTheme, THEMES } = useTheme()
+const { toggle: paletteToggle } = useCommandPalette()
+
+const primaryTheme = computed(() => THEMES.find(t => t.id === publicThemes.value.primary))
+const altTheme     = computed(() => THEMES.find(t => t.id === publicThemes.value.alt))
+const nextTheme    = computed(() =>
+  currentTheme.value === publicThemes.value.alt ? primaryTheme.value : altTheme.value,
+)
 
 const navLinks = computed(() => {
   const links = [
@@ -180,6 +247,85 @@ watch(() => route.path, () => { mobileOpen.value = false })
   padding: 0.45em 1em;
 }
 
+/* Theme toggle pill */
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: 5px 10px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-sm);
+  border-radius: var(--r-md);
+  cursor: pointer;
+  transition: border-color var(--t-fast), background var(--t-fast);
+}
+.theme-toggle:hover {
+  border-color: var(--accent);
+  background: var(--bg-surface-hv);
+}
+
+.tt-option {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: opacity var(--t-fast);
+  opacity: 0.38;
+}
+.tt-option--active {
+  opacity: 1;
+}
+
+.tt-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.tt-name {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 500;
+  color: var(--text-1);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.tt-swap {
+  color: var(--text-3);
+  flex-shrink: 0;
+  transition: color var(--t-fast);
+}
+.theme-toggle:hover .tt-swap {
+  color: var(--accent);
+}
+
+/* Command palette button */
+.cmd-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 9px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-sm);
+  border-radius: var(--r-md);
+  color: var(--text-2);
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-family: var(--font-mono);
+  transition: color var(--t-fast), border-color var(--t-fast), background var(--t-fast);
+}
+.cmd-btn:hover {
+  color: var(--text-1);
+  border-color: var(--accent);
+  background: var(--bg-surface-hv);
+}
+
+.cmd-label {
+  font-size: 0.72rem;
+  letter-spacing: 0.02em;
+}
+
 /* Hamburger */
 .menu-toggle {
   display: none;
@@ -223,6 +369,43 @@ watch(() => route.path, () => { mobileOpen.value = false })
 }
 .nav-mobile-link:last-of-type { border: none; }
 .nav-mobile-link:hover { color: var(--accent); }
+
+.mobile-tools {
+  padding: var(--sp-2) 0;
+  border-bottom: 1px solid var(--border-xs);
+}
+.mobile-theme-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  width: 100%;
+  padding: var(--sp-3) var(--sp-2);
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--border-xs);
+  cursor: pointer;
+}
+.mobile-theme-toggle:hover .tt-option:not(.tt-option--active) {
+  opacity: 0.6;
+}
+
+.mobile-tools .cmd-btn {
+  width: 100%;
+  justify-content: flex-start;
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-2);
+  background: none;
+  border: none;
+  border-radius: 0;
+  font-size: 1rem;
+  font-family: var(--font-body);
+  color: var(--text-2);
+}
+.mobile-tools .cmd-btn:hover {
+  color: var(--accent);
+  background: none;
+  border: none;
+}
 
 /* Transitions */
 .mobile-nav-enter-active,
