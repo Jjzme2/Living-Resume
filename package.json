@@ -1,0 +1,32 @@
+{
+  "name": "jj-living-resume",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "generate:32-char-string": "openssl rand -base64 32 | head -c 32 && echo"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "latest",
+    "@nuxt/content": "^2.13.0",
+    "@pinia/nuxt": "^0.9.0",
+    "@vueuse/core": "^11.3.0",
+    "@vueuse/nuxt": "^11.3.0",
+    "firebase-admin": "^13.7.0",
+    "jose": "latest",
+    "nuxt": "^3.15.0",
+    "pinia": "^2.3.0",
+    "resend": "latest",
+    "vue": "^3.5.0",
+    "vue-router": "^4.5.0"
+  },
+  "devDependencies": {
+    "@nuxt/devtools": "^1.7.0",
+    "typescript": "^5.7.0"
+  }
+}

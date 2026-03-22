@@ -1,0 +1,91 @@
+/* ================================================================
+   Print Styles
+   Applied when user clicks "Download PDF" on /resume
+   and prints via browser (File → Print or Ctrl+P / Cmd+P)
+   ================================================================ */
+@media print {
+  :root {
+    --text-1:   #111827;
+    --text-2:   #374151;
+    --text-3:   #6b7280;
+    --bg-base:  #ffffff;
+    --accent:   #0891b2;
+    --accent2:  #4f46e5;
+    --border-sm: #e5e7eb;
+  }
+
+  /* Reset for print */
+  * {
+    box-shadow: none !important;
+    text-shadow: none !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  body {
+    background: white !important;
+    color: #111827;
+    font-family: 'Inter', Georgia, serif;
+    font-size: 10.5pt;
+    line-height: 1.55;
+  }
+
+  /* Hide site chrome */
+  .site-header,
+  .site-footer,
+  .particle-canvas,
+  .bg-radial,
+  .noise-overlay,
+  .no-print,
+  .btn-print-trigger,
+  nav {
+    display: none !important;
+  }
+
+  /* Resume specific overrides */
+  .resume-page {
+    max-width: 100%;
+    padding: 0;
+    margin: 0;
+  }
+
+  .glass,
+  .glass-card {
+    background: transparent !important;
+    border: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  /* Flatten gradient text to solid color */
+  .gradient-text {
+    background: none !important;
+    -webkit-text-fill-color: var(--accent) !important;
+    color: var(--accent) !important;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  /* Page setup */
+  @page {
+    margin: 0.65in 0.75in;
+    size: letter portrait;
+  }
+
+  /* Smart page breaks */
+  h2, h3, h4         { page-break-after: avoid; }
+  .experience-item,
+  .education-item     { page-break-inside: avoid; }
+  section             { page-break-inside: avoid; }
+
+  /* Print-only helper */
+  .print-only { display: block !important; }
+}
+
+/* Hidden on screen, shown in print */
+.print-only {
+  display: none;
+}

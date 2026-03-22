@@ -1,0 +1,263 @@
+/* ================================================================
+   Theme System
+   All themes override CSS custom properties defined in main.css.
+   Applied via data-theme attribute on <html>.
+   ================================================================ */
+
+/* ── Midnight (default) ─────────────────────────────────────────
+   No overrides needed — main.css :root defines midnight tokens.
+   ──────────────────────────────────────────────────────────────── */
+
+/* ── Glass ──────────────────────────────────────────────────────
+   Deep glassmorphism: frosted surfaces over a dark void.
+   ──────────────────────────────────────────────────────────────── */
+[data-theme="glass"] {
+  --bg-base:       #010408;
+  --bg-elevated:   rgba(12, 20, 40, 0.40);
+  --bg-surface:    rgba(255, 255, 255, 0.042);
+  --bg-surface-hv: rgba(255, 255, 255, 0.075);
+  --border-xs:     rgba(255, 255, 255, 0.06);
+  --border-sm:     rgba(255, 255, 255, 0.11);
+  --border-md:     rgba(255, 255, 255, 0.18);
+  --shadow-card:   0 2px 16px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.055);
+  --shadow-float:  0 24px 80px rgba(0,0,0,0.55);
+}
+
+/* Apply frosted glass to all elevated surfaces */
+[data-theme="glass"] .admin-card,
+[data-theme="glass"] .section-card,
+[data-theme="glass"] .stat-card,
+[data-theme="glass"] .card,
+[data-theme="glass"] .fm-card,
+[data-theme="glass"] .editor-side,
+[data-theme="glass"] .preview-side,
+[data-theme="glass"] .admin-sidebar,
+[data-theme="glass"] .admin-header,
+[data-theme="glass"] .message-item,
+[data-theme="glass"] .integration-row,
+[data-theme="glass"] .toast,
+[data-theme="glass"] .post-row,
+[data-theme="glass"] .status-row:hover,
+[data-theme="glass"] .nav-item.router-link-active {
+  backdrop-filter: blur(20px) saturate(170%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(170%) !important;
+}
+
+[data-theme="glass"] .admin-sidebar {
+  border-right-color: rgba(255,255,255,0.07) !important;
+}
+
+/* ── Aero ───────────────────────────────────────────────────────
+   Windows Aero-inspired: blue-tinted glass, glossy chrome.
+   ──────────────────────────────────────────────────────────────── */
+[data-theme="aero"] {
+  --bg-base:       #03080f;
+  --bg-elevated:   rgba(8, 40, 90, 0.38);
+  --bg-surface:    rgba(80, 160, 255, 0.055);
+  --bg-surface-hv: rgba(80, 160, 255, 0.10);
+  --border-xs:     rgba(100, 180, 255, 0.09);
+  --border-sm:     rgba(120, 190, 255, 0.20);
+  --border-md:     rgba(140, 200, 255, 0.30);
+  --accent:        #38bdf8;
+  --accent-dim:    rgba(56, 189, 248, 0.12);
+  --accent-glow:   rgba(56, 189, 248, 0.12);
+  --grad-accent:   linear-gradient(135deg, #38bdf8 0%, #818cf8 100%);
+  --shadow-card:   0 2px 20px rgba(0,40,100,0.5), inset 0 1px 0 rgba(150,210,255,0.12);
+  --shadow-glow:   0 0 48px rgba(56,189,248,0.12), 0 0 80px rgba(56,189,248,0.05);
+}
+
+[data-theme="aero"] .admin-card,
+[data-theme="aero"] .section-card,
+[data-theme="aero"] .stat-card,
+[data-theme="aero"] .card,
+[data-theme="aero"] .fm-card,
+[data-theme="aero"] .editor-side,
+[data-theme="aero"] .preview-side,
+[data-theme="aero"] .admin-sidebar,
+[data-theme="aero"] .admin-header,
+[data-theme="aero"] .message-item,
+[data-theme="aero"] .integration-row,
+[data-theme="aero"] .toast,
+[data-theme="aero"] .post-row,
+[data-theme="aero"] .nav-item.router-link-active {
+  backdrop-filter: blur(24px) saturate(200%) brightness(1.08) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(200%) brightness(1.08) !important;
+}
+
+/* Glossy top highlight */
+[data-theme="aero"] .admin-card::before,
+[data-theme="aero"] .section-card::before,
+[data-theme="aero"] .stat-card::before,
+[data-theme="aero"] .card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(180deg, rgba(180,220,255,0.08) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+[data-theme="aero"] .admin-card,
+[data-theme="aero"] .section-card,
+[data-theme="aero"] .stat-card,
+[data-theme="aero"] .card {
+  position: relative;
+}
+
+/* ── Noir ───────────────────────────────────────────────────────
+   Pure black canvas, amber-gold accent. High drama.
+   ──────────────────────────────────────────────────────────────── */
+[data-theme="noir"] {
+  --bg-base:       #000000;
+  --bg-elevated:   #080808;
+  --bg-surface:    rgba(255, 255, 255, 0.028);
+  --bg-surface-hv: rgba(255, 255, 255, 0.052);
+  --border-xs:     rgba(255, 255, 255, 0.045);
+  --border-sm:     rgba(255, 255, 255, 0.075);
+  --border-md:     rgba(255, 255, 255, 0.12);
+  --accent:        #fbbf24;
+  --accent-dim:    rgba(251, 191, 36, 0.10);
+  --accent-glow:   rgba(251, 191, 36, 0.09);
+  --grad-accent:   linear-gradient(135deg, #fbbf24 0%, #f97316 100%);
+  --shadow-glow:   0 0 48px rgba(251,191,36,0.10), 0 0 80px rgba(251,191,36,0.04);
+  --text-2:        #7a8090;
+  --text-3:        #3a3f4a;
+}
+
+/* ── Slate ──────────────────────────────────────────────────────
+   Blue-gray depths, indigo-violet accent. Corporate cool.
+   ──────────────────────────────────────────────────────────────── */
+[data-theme="slate"] {
+  --bg-base:       #080c18;
+  --bg-elevated:   #0f1628;
+  --bg-surface:    rgba(99, 102, 241, 0.045);
+  --bg-surface-hv: rgba(99, 102, 241, 0.085);
+  --border-xs:     rgba(99, 102, 241, 0.09);
+  --border-sm:     rgba(99, 102, 241, 0.16);
+  --border-md:     rgba(99, 102, 241, 0.26);
+  --accent:        #818cf8;
+  --accent-dim:    rgba(129, 140, 248, 0.12);
+  --accent-glow:   rgba(129, 140, 248, 0.10);
+  --grad-accent:   linear-gradient(135deg, #818cf8 0%, #c084fc 100%);
+  --shadow-glow:   0 0 48px rgba(129,140,248,0.10), 0 0 80px rgba(129,140,248,0.04);
+  --text-2:        #8892aa;
+  --text-3:        #404860;
+}
+
+/* ── Dawn ───────────────────────────────────────────────────────
+   Crisp light mode. Airy off-white with sky-blue accent.
+   ──────────────────────────────────────────────────────────────── */
+[data-theme="dawn"] {
+  --bg-base:       #f1f5fb;
+  --bg-elevated:   #ffffff;
+  --bg-surface:    rgba(0, 0, 0, 0.034);
+  --bg-surface-hv: rgba(0, 0, 0, 0.062);
+  --border-xs:     rgba(0, 0, 0, 0.07);
+  --border-sm:     rgba(0, 0, 0, 0.11);
+  --border-md:     rgba(0, 0, 0, 0.18);
+  --text-1:        #0d1117;
+  --text-2:        #4a5568;
+  --text-3:        #9aa5b4;
+  --accent:        #0ea5e9;
+  --accent-dim:    rgba(14, 165, 233, 0.10);
+  --accent-glow:   rgba(14, 165, 233, 0.09);
+  --grad-accent:   linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%);
+  --shadow-card:   0 1px 3px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.06);
+  --shadow-float:  0 20px 60px rgba(0,0,0,0.12);
+  --shadow-glow:   0 0 40px rgba(14,165,233,0.08);
+}
+
+[data-theme="dawn"] body {
+  color: var(--text-1);
+}
+
+/* Dawn — invert noise overlay */
+[data-theme="dawn"] .noise-overlay {
+  mix-blend-mode: multiply;
+  opacity: 0.03;
+}
+
+[data-theme="dawn"] .bg-radial {
+  background: radial-gradient(ellipse 90% 55% at 50% -5%, rgba(14,165,233,0.07) 0%, transparent 70%);
+}
+
+/* ── Dreamer ─────────────────────────────────────────────────────
+   Deep cosmic violet. Soft lavender glow, ethereal blur.
+   Inspired by the dream of coding — where it all began.
+   ──────────────────────────────────────────────────────────────── */
+[data-theme="dreamer"] {
+  --bg-base:       #060311;
+  --bg-elevated:   rgba(30, 10, 65, 0.65);
+  --bg-surface:    rgba(192, 100, 255, 0.04);
+  --bg-surface-hv: rgba(192, 100, 255, 0.09);
+  --border-xs:     rgba(192, 100, 255, 0.08);
+  --border-sm:     rgba(200, 120, 255, 0.16);
+  --border-md:     rgba(210, 140, 255, 0.28);
+  --accent:        #d8b4fe;
+  --accent-dim:    rgba(216, 180, 254, 0.12);
+  --accent-glow:   rgba(216, 180, 254, 0.14);
+  --grad-accent:   linear-gradient(135deg, #d8b4fe 0%, #f9a8d4 100%);
+  --shadow-card:   0 2px 20px rgba(80,20,140,0.5), inset 0 1px 0 rgba(220,160,255,0.10);
+  --shadow-glow:   0 0 60px rgba(192,132,252,0.18), 0 0 100px rgba(192,132,252,0.07);
+  --text-2:        #b89ec8;
+  --text-3:        #5a3d70;
+}
+
+/* Frosted dream surfaces */
+[data-theme="dreamer"] .admin-card,
+[data-theme="dreamer"] .section-card,
+[data-theme="dreamer"] .stat-card,
+[data-theme="dreamer"] .card,
+[data-theme="dreamer"] .fm-card,
+[data-theme="dreamer"] .editor-side,
+[data-theme="dreamer"] .preview-side,
+[data-theme="dreamer"] .admin-sidebar,
+[data-theme="dreamer"] .admin-header,
+[data-theme="dreamer"] .message-item,
+[data-theme="dreamer"] .integration-row,
+[data-theme="dreamer"] .toast,
+[data-theme="dreamer"] .post-row,
+[data-theme="dreamer"] .nav-item.router-link-active {
+  backdrop-filter: blur(18px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(160%) !important;
+}
+
+/* Soft aurora shimmer on hero radial */
+[data-theme="dreamer"] .bg-radial {
+  background: radial-gradient(ellipse 80% 50% at 50% -5%,
+    rgba(192,100,255,0.10) 0%,
+    rgba(249,168,212,0.06) 40%,
+    transparent 70%);
+}
+
+/* ── Yin Yang ────────────────────────────────────────────────────
+   Pure duality. Ink black canvas, white accent. No color — only contrast.
+   ──────────────────────────────────────────────────────────────── */
+[data-theme="yinyang"] {
+  --bg-base:       #000000;
+  --bg-elevated:   #0c0c0c;
+  --bg-surface:    rgba(255, 255, 255, 0.04);
+  --bg-surface-hv: rgba(255, 255, 255, 0.08);
+  --border-xs:     rgba(255, 255, 255, 0.07);
+  --border-sm:     rgba(255, 255, 255, 0.14);
+  --border-md:     rgba(255, 255, 255, 0.24);
+  --accent:        #ffffff;
+  --accent-dim:    rgba(255, 255, 255, 0.08);
+  --accent-glow:   rgba(255, 255, 255, 0.07);
+  --grad-accent:   linear-gradient(135deg, #ffffff 0%, #888888 100%);
+  --shadow-card:   0 2px 20px rgba(0,0,0,0.85), inset 0 1px 0 rgba(255,255,255,0.06);
+  --shadow-float:  0 24px 80px rgba(0,0,0,0.7);
+  --shadow-glow:   0 0 40px rgba(255,255,255,0.06), 0 0 80px rgba(255,255,255,0.02);
+  --text-1:        #f5f5f5;
+  --text-2:        #888888;
+  --text-3:        #3a3a3a;
+}
+
+[data-theme="yinyang"] body {
+  color: var(--text-1);
+}
+
+/* Yin Yang: no radial tint — pure void */
+[data-theme="yinyang"] .bg-radial {
+  display: none;
+}

@@ -1,0 +1,11 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": ".output/public",
+  "framework": "nuxtjs",
+  "crons": [
+    {
+      "path": "/api/cron/daily-digest?secret=6215ee65c2abd38653497b6422627893d1e6ef13",
+      "schedule": "0 4 * * *"
+    }
+  ]
+}
