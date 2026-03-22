@@ -9,6 +9,16 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, message: 'filePath and content are required.' })
   }
 
+  // Restrict writes to content/blog/ — prevent path traversal into the rest of the repo
+  const normalizedPath = filePath.replace(/\\/g, '/').replace(/\/+/g, '/')
+  if (
+    !normalizedPath.startsWith('content/blog/') ||
+    normalizedPath.includes('..') ||
+    !normalizedPath.endsWith('.md')
+  ) {
+    throw createError({ statusCode: 400, message: 'filePath must be within content/blog/ and end with .md' })
+  }
+
   const token = process.env.GITHUB_TOKEN
   const repo = process.env.GITHUB_REPO
   const branch = process.env.GITHUB_BRANCH || 'main'

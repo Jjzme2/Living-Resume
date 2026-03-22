@@ -2,10 +2,11 @@ import { Resend } from 'resend'
 import { kvGet } from '../../utils/kv'
 
 export default defineEventHandler(async (event) => {
-  // Protect with CRON_SECRET
-  const secret = getQuery(event).secret
+  // Protect with CRON_SECRET via Authorization header (Vercel injects this automatically).
+  // Never pass secrets as URL query params — they end up in logs and source control.
+  const authHeader = getHeader(event, 'authorization')
   const expected = process.env.CRON_SECRET
-  if (!expected || secret !== expected) {
+  if (!expected || authHeader !== `Bearer ${expected}`) {
     throw createError({ statusCode: 401, statusMessage: 'Unauthorized' })
   }
 

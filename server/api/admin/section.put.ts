@@ -1,7 +1,7 @@
 import { readBody } from 'h3'
 import { kvSet } from '../../utils/kv'
 
-const VALID_SECTIONS = ['person', 'business', 'social', 'skills', 'experience', 'education', 'projects', 'settings'] as const
+const VALID_SECTIONS = ['person', 'business', 'social', 'skills', 'experience', 'education', 'projects', 'settings', 'interview-persona'] as const
 type ValidSection = typeof VALID_SECTIONS[number]
 
 export default defineEventHandler(async (event) => {
