@@ -22,7 +22,7 @@ Thumbs.db
 .idea
 *.swp
 
-# Environment variables — never commit secrets
+# Environment variables
 .env.local
 .env.*.local
 .env.production
