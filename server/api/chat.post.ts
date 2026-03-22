@@ -1,6 +1,8 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { readBody } from 'h3'
-import { getSiteData } from '../utils/kv'
+import { getSiteData, kvGet } from '../utils/kv'
+import type { InterviewPersona } from './admin/interview-persona.get'
+import { DEFAULT_PERSONA } from './admin/interview-persona.get'
 
 interface ChatMessage {
   role: 'user' | 'assistant'
@@ -9,7 +11,7 @@ interface ChatMessage {
 
 type SiteData = Awaited<ReturnType<typeof getSiteData>>
 
-function buildSystemPrompt(data: SiteData): string {
+function buildSystemPrompt(data: SiteData, persona: InterviewPersona): string {
   const p = data.person
   const lines: string[] = []
 
@@ -21,6 +23,16 @@ function buildSystemPrompt(data: SiteData): string {
     `Speak about them in third person. Keep answers concise (2–4 sentences) unless depth is clearly warranted.`,
     '',
   )
+
+  // Tone instruction from persona config
+  if (persona.tone === 'professional') {
+    lines.push('Tone: Maintain a polished, professional tone throughout.')
+  } else if (persona.tone === 'casual') {
+    lines.push('Tone: Be conversational and informal — approachable, like chatting with a peer.')
+  } else {
+    lines.push('Tone: Be warm, genuine, and personable while remaining professional.')
+  }
+  lines.push('')
 
   lines.push('## Identity')
   if (p.fullName) lines.push(`Full name: ${p.fullName}`)
@@ -89,12 +101,30 @@ function buildSystemPrompt(data: SiteData): string {
     lines.push('')
   }
 
+  // Inject admin-configured FAQ pairs
+  if (persona.faqs.length > 0) {
+    lines.push('## Prepared Answers')
+    lines.push('When these topics arise, use these specific answers as your primary reference:')
+    for (const faq of persona.faqs) {
+      lines.push(`Q: ${faq.q}`)
+      lines.push(`A: ${faq.a}`)
+    }
+    lines.push('')
+  }
+
+  // Inject any additional custom instructions
+  if (persona.customInstructions.trim()) {
+    lines.push('## Additional Instructions')
+    lines.push(persona.customInstructions.trim())
+    lines.push('')
+  }
+
   lines.push('## Guidelines')
-  lines.push('- Be warm, specific, and honest. Avoid corporate-speak and filler phrases.')
+  lines.push('- Be specific and honest. Avoid corporate-speak and filler phrases.')
   lines.push('- If something is not in the data above, say so naturally without making anything up.')
   lines.push(`- If asked how to reach ${name}, tell them to use the contact section on this page.`)
-  lines.push('- This is a portfolio site meant to give a feel for who this person is — treat every question as a genuine interview question worth a thoughtful answer.')
-  lines.push('- Never roleplay as the person directly (no "I am Jj"). You are an assistant who knows them well.')
+  lines.push('- Treat every question as a genuine interview question worth a thoughtful answer.')
+  lines.push('- Never roleplay as the person directly. You are an assistant who knows them well.')
 
   return lines.join('\n')
 }
@@ -114,11 +144,15 @@ export default defineEventHandler(async (event) => {
   // Cap history to last 20 turns to control context size
   const messages = body.messages.slice(-20).map((m) => ({
     role: m.role,
-    content: String(m.content).slice(0, 2000), // cap individual message length
+    content: String(m.content).slice(0, 2000),
   }))
 
-  const siteData = await getSiteData()
-  const systemPrompt = buildSystemPrompt(siteData)
+  const [siteData, persona] = await Promise.all([
+    getSiteData(),
+    kvGet<InterviewPersona>('site:interview-persona').then((p) => p ?? { ...DEFAULT_PERSONA }),
+  ])
+
+  const systemPrompt = buildSystemPrompt(siteData, persona)
   const client = new Anthropic({ apiKey })
 
   try {
