@@ -3,6 +3,7 @@
     <HeroSection />
     <QuotesSection />
     <AboutSection />
+    <InterviewSection />
     <SkillsSection />
     <ExperienceSection />
     <ProjectsSection />

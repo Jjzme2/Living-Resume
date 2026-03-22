@@ -49,7 +49,7 @@ Key interfaces and exported objects:
 | `experience` | `{company, role, dates, location, type, highlights[]}[]` |
 | `education` | `{institution, degree, field, year, honors}[]` |
 | `projects` | `{title, description, tags[], url, repo, featured, image}[]` |
-| `siteSettings` | section toggle booleans, siteUrl, copyrightYear, theme |
+| `siteSettings` | section toggle booleans (incl. `showInterview`), siteUrl, copyrightYear, theme |
 
 ### Routing
 
@@ -91,12 +91,15 @@ All located in `server/api/`:
 | Route | Method | Purpose |
 |---|---|---|
 | `/api/site-data` | GET | Serve config/site data to store |
+| `/api/chat` | POST | AI interview chat (Claude Haiku, uses site data as context) |
 | `/api/contact` | POST | Contact form submission (via Resend) |
 | `/api/theme` | GET | Get current public theme |
 | `/api/analytics/track` | POST | Page view tracking |
 | `/api/auth/*` | POST | Admin authentication (JWT) |
 | `/api/admin/*` | * | Admin CRUD operations |
 | `/api/cron/daily-digest` | GET | Cron job (runs daily at 4 AM via Vercel) |
+
+**`/api/chat`** accepts `{ messages: [{role, content}][] }`. It fetches live site data via `getSiteData()`, builds a system prompt from person/experience/skills/projects/education/business, and calls Claude Haiku. Caps history at 20 turns and individual messages at 2000 chars. Requires `ANTHROPIC_API_KEY`.
 
 ### Animation System
 
@@ -153,7 +156,7 @@ Theme management via `composables/useTheme.ts` — `applyTheme()`, `loadPublicTh
 
 - Components are auto-imported (no explicit imports needed). Registration uses `pathPrefix: false` so only the filename matters, not the directory.
 - `components/ui/` — reusable primitives: `GlassCard`, `SectionHeading`, `KineticText`, `SocialIcon`
-- `components/home/` — one component per homepage section (HeroSection, AboutSection, SkillsSection, ExperienceSection, ProjectsSection, BlogPreview, ContactSection, QuotesSection)
+- `components/home/` — one component per homepage section (HeroSection, AboutSection, InterviewSection, SkillsSection, ExperienceSection, ProjectsSection, BlogPreview, ContactSection, QuotesSection)
 - `components/layout/` — `SiteHeader` and `SiteFooter`
 - `components/resume/` — `ResumeDoc` (print-optimized resume renderer)
 - `components/canvas/` — `ParticleField` (canvas background)

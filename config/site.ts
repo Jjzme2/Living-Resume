@@ -157,13 +157,14 @@ export const projects: Project[] = [
 
 export const siteSettings = {
   // Toggle entire sections
-  showAbout:    true,
-  showSkills:   true,
+  showAbout:     true,
+  showSkills:    true,
   showExperience: true,
-  showProjects: true,
-  showBlog:     true,
-  showContact:  true,
-  showServices: true,
+  showProjects:  true,
+  showBlog:      true,
+  showContact:   true,
+  showServices:  true,
+  showInterview: true,  // AI-powered "Ask Me Anything" chat
 
   // Nav
   siteUrl: 'https://jjzettler.com',   // update when domain is live

@@ -74,6 +74,18 @@ export const sectionContent = {
     notFoundBody:    "This post doesn't exist or has been removed.",
   },
 
+  interview: {
+    label:       'Interactive',
+    title:       'Ask Me Anything',
+    accent:      'Anything',
+    description: "Curious about my background, projects, or what drives me? This is like a live interview — ask away.",
+    placeholder: 'Ask about my background, skills, or goals…',
+    sendLabel:   'Send',
+    suggestionsLabel: 'Try asking:',
+    errorMessage: 'Something went wrong — please try again.',
+    poweredBy:   'Powered by Claude AI',
+  },
+
   contact: {
     label:       'Contact',
     title:       "Let's Connect",
