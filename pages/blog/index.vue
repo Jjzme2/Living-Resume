@@ -11,15 +11,15 @@
       <div v-if="posts && posts.length" class="blog-grid stagger">
         <NuxtLink
           v-for="post in posts"
-          :key="post._path"
-          :to="post._path"
+          :key="post.slug"
+          :to="post.path"
           class="blog-card glass glass-hover"
         >
           <img v-if="post.image" :src="post.image" :alt="post.title" class="card-cover" loading="lazy" />
           <div class="post-meta">
             <time :datetime="post.date" class="post-date">{{ formatDate(post.date) }}</time>
             <div class="post-tags">
-              <span class="chip category-chip">{{ post.category ?? categoryOf(post._path) }}</span>
+              <span class="chip category-chip">{{ categoryOf(post) }}</span>
               <span v-for="tag in post.tags?.slice(0, 2)" :key="tag" class="chip">{{ tag }}</span>
             </div>
           </div>
@@ -48,18 +48,14 @@
 import { sectionContent } from '~/data/sectionContent'
 useScrollReveal()
 
+import type { PostMeta } from '~/server/utils/r2'
+
 const { data: posts } = await useAsyncData('blog-all', () =>
-  queryContent('/blog')
-    .where({ status: { $ne: 'draft' } })
-    .sort({ date: -1 })
-    .find()
-    .catch(() => [])
+  $fetch<PostMeta[]>('/api/blog').catch(() => [])
 )
 
-// Extract category from path: /blog/tech/my-post → "tech"
-function categoryOf(path: string): string | null {
-  const parts = path?.split('/').filter(Boolean) // ['blog', 'tech', 'my-post']
-  return parts?.length === 3 ? parts[1] : null
+function categoryOf(post: PostMeta): string | null {
+  return post.category ?? (post.slug?.split('/')[0] || null)
 }
 
 function formatDate(dateStr: string): string {

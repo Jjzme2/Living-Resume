@@ -27,6 +27,8 @@ export interface ExperienceItem {
   endDate?: string // omit for current position
   location?: string
   type?: 'full-time' | 'part-time' | 'contract' | 'freelance'
+  /** User-defined industry grouping shown on the public site, e.g. "Tech / Dev", "Manufacturing", "Restaurant" */
+  jobType?: string
   highlights: string[]
 }
 

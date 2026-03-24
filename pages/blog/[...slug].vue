@@ -42,9 +42,8 @@
         <hr class="divider" />
 
         <!-- Post body (rendered markdown) -->
-        <div class="post-body reveal">
-          <ContentRenderer :value="post" />
-        </div>
+        <!-- eslint-disable-next-line vue/no-v-html -->
+        <div class="post-body reveal" v-html="renderedBody" />
 
         <hr class="divider" />
 
@@ -68,38 +67,32 @@
 
 <script setup lang="ts">
 import { sectionContent } from '~/data/sectionContent'
+import type { BlogPost } from '~/server/utils/r2'
 
 useScrollReveal()
 
 const route = useRoute()
 const store = useSiteStore()
+const { renderMarkdown } = useMarkdown()
 
 const slugParts = Array.isArray(route.params.slug) ? route.params.slug : [route.params.slug]
-const contentPath = `/blog/${slugParts.join('/')}`
+const slug = slugParts.join('/')
+
+const { data: post } = await useAsyncData(`blog-${slug}`, () =>
+  $fetch<BlogPost>(`/api/blog/${slug}`).catch(() => null)
+)
+
 const category = computed(() =>
   post.value?.category ?? (slugParts.length > 1 ? slugParts[0] : null)
 )
 
-const { data: post } = await useAsyncData(`blog-${contentPath}`, () =>
-  queryContent(contentPath)
-    .findOne()
-    .catch(() => null)
+const renderedBody = computed(() =>
+  post.value?.body ? renderMarkdown(post.value.body) : ''
 )
-
-// ── Reading time ──────────────────────────────────────────────────────────────
-function extractBodyText(node: unknown): string {
-  if (!node) return ''
-  if (typeof node === 'string') return node
-  const n = node as Record<string, unknown>
-  if (n.type === 'text') return String(n.value ?? '')
-  if (Array.isArray(n.children)) return (n.children as unknown[]).map(extractBodyText).join(' ')
-  return ''
-}
 
 const readingTime = computed(() => {
   if (!post.value?.body) return null
-  const text = extractBodyText(post.value.body)
-  const words = text.trim().split(/\s+/).filter(Boolean).length
+  const words = post.value.body.trim().split(/\s+/).filter(Boolean).length
   return Math.max(1, Math.ceil(words / 200))
 })
 
@@ -160,7 +153,6 @@ function formatDate(dateStr: string): string {
 }
 .back-link:hover { color: var(--accent); opacity: 1; }
 
-/* Cover image */
 .post-cover {
   margin-bottom: var(--sp-8);
   border-radius: var(--r-lg);

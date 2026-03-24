@@ -24,8 +24,23 @@
           <input v-model="form.title" type="text" class="field-input" placeholder="Developer & Entrepreneur" />
         </div>
         <div class="field-group col-span-2">
-          <label class="field-label">Tagline</label>
+          <div class="label-row">
+            <label class="field-label">Tagline</label>
+            <button type="button" class="ai-btn" :disabled="aiTagline.loading.value" @click="runTaglineAssist">
+              <svg v-if="!aiTagline.loading.value" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>
+              <span v-else class="ai-spinner" />
+              {{ aiTagline.loading.value ? 'Thinking…' : 'AI Suggest' }}
+            </button>
+          </div>
           <input v-model="form.tagline" type="text" class="field-input" placeholder="Building things people love." />
+          <div v-if="aiTagline.result.value" class="ai-suggestion">
+            <p class="ai-suggestion-text">{{ aiTagline.result.value }}</p>
+            <div class="ai-suggestion-actions">
+              <button type="button" class="ai-use-btn" @click="form.tagline = aiTagline.result.value!; aiTagline.dismiss()">Use this</button>
+              <button type="button" class="ai-dismiss-btn" @click="aiTagline.dismiss()">Dismiss</button>
+            </div>
+          </div>
+          <p v-if="aiTagline.error.value" class="ai-error">{{ aiTagline.error.value }}</p>
         </div>
         <div class="field-group">
           <label class="field-label">Location</label>
@@ -48,8 +63,23 @@
           <input v-model="form.resumePdfUrl" type="text" class="field-input" placeholder="https://..." />
         </div>
         <div class="field-group col-span-2">
-          <label class="field-label">Bio</label>
+          <div class="label-row">
+            <label class="field-label">Bio</label>
+            <button type="button" class="ai-btn" :disabled="aiBio.loading.value" @click="runBioAssist">
+              <svg v-if="!aiBio.loading.value" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>
+              <span v-else class="ai-spinner" />
+              {{ aiBio.loading.value ? 'Thinking…' : 'AI Suggest' }}
+            </button>
+          </div>
           <textarea v-model="form.bio" class="field-input field-textarea" rows="4" placeholder="2–4 sentence personal statement…" />
+          <div v-if="aiBio.result.value" class="ai-suggestion">
+            <p class="ai-suggestion-text">{{ aiBio.result.value }}</p>
+            <div class="ai-suggestion-actions">
+              <button type="button" class="ai-use-btn" @click="form.bio = aiBio.result.value!; aiBio.dismiss()">Use this</button>
+              <button type="button" class="ai-dismiss-btn" @click="aiBio.dismiss()">Dismiss</button>
+            </div>
+          </div>
+          <p v-if="aiBio.error.value" class="ai-error">{{ aiBio.error.value }}</p>
         </div>
       </div>
 
@@ -88,6 +118,26 @@ const form = reactive<PersonForm>({
   name: '', fullName: '', initials: '', title: '', tagline: '',
   location: '', email: '', phone: '', bio: '', avatarUrl: '', resumePdfUrl: '',
 })
+
+const aiBio = useAiAssist()
+const aiTagline = useAiAssist()
+
+function runBioAssist() {
+  aiBio.assist('improve_bio', {
+    current: form.bio,
+    name: form.name,
+    title: form.title,
+  })
+}
+
+function runTaglineAssist() {
+  aiTagline.assist('improve_tagline', {
+    current: form.tagline,
+    name: form.name,
+    title: form.title,
+    bio: form.bio,
+  })
+}
 
 onMounted(async () => {
   try {
@@ -132,4 +182,20 @@ async function save() {
 .btn-spinner { width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 @media (max-width: 600px) { .form-grid { grid-template-columns: 1fr; } .col-span-2 { grid-column: span 1; } }
+
+/* AI assist */
+.label-row { display: flex; align-items: center; justify-content: space-between; }
+.ai-btn { display: inline-flex; align-items: center; gap: 5px; font-size: 0.72rem; font-family: var(--font-mono); color: var(--accent); background: var(--accent-dim); border: 1px solid rgba(94,234,212,0.2); border-radius: var(--r-md); padding: 3px 9px; cursor: pointer; transition: background 0.15s, border-color 0.15s; white-space: nowrap; }
+.ai-btn:hover:not(:disabled) { background: rgba(94,234,212,0.12); border-color: rgba(94,234,212,0.35); }
+.ai-btn:disabled { opacity: 0.5; cursor: default; }
+.ai-spinner { width: 10px; height: 10px; border: 1.5px solid rgba(94,234,212,0.3); border-top-color: var(--accent); border-radius: 50%; animation: ai-spin 0.7s linear infinite; }
+@keyframes ai-spin { to { transform: rotate(360deg); } }
+.ai-suggestion { margin-top: var(--sp-2); background: rgba(94,234,212,0.05); border: 1px solid rgba(94,234,212,0.2); border-radius: var(--r-md); padding: var(--sp-4); }
+.ai-suggestion-text { font-size: 0.88rem; color: var(--text-2); line-height: 1.6; white-space: pre-wrap; margin-bottom: var(--sp-3); }
+.ai-suggestion-actions { display: flex; gap: var(--sp-2); }
+.ai-use-btn { font-size: 0.78rem; font-family: var(--font-mono); background: var(--accent); color: var(--bg-base); border: none; border-radius: var(--r-md); padding: 5px 12px; cursor: pointer; font-weight: 600; }
+.ai-use-btn:hover { opacity: 0.9; }
+.ai-dismiss-btn { font-size: 0.78rem; font-family: var(--font-mono); background: transparent; color: var(--text-3); border: 1px solid var(--border-sm); border-radius: var(--r-md); padding: 5px 12px; cursor: pointer; }
+.ai-dismiss-btn:hover { color: var(--text-2); }
+.ai-error { font-size: 0.78rem; color: #f87171; margin-top: var(--sp-2); font-family: var(--font-mono); }
 </style>

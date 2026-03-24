@@ -18,7 +18,7 @@
       <div v-if="loading" class="loading-row">Loading posts…</div>
       <div v-else-if="!posts?.length" class="empty-row">No posts yet. Create your first one above.</div>
       <div v-else class="posts-list">
-        <div v-for="post in posts" :key="post._path" class="post-row">
+        <div v-for="post in posts" :key="post.slug" class="post-row">
           <div class="post-row-info">
             <div class="post-row-title">{{ post.title }}</div>
             <div class="post-row-meta">
@@ -30,7 +30,10 @@
             </div>
           </div>
           <div class="post-row-actions">
-            <a :href="post._path" target="_blank" rel="noopener" class="btn btn-ghost btn-xs">View</a>
+            <a :href="post.path" target="_blank" rel="noopener" class="btn btn-ghost btn-xs">View</a>
+            <button class="btn btn-danger btn-xs" :disabled="deletingSlug === post.slug" @click="deletePost(post.slug)">
+              {{ deletingSlug === post.slug ? '…' : 'Delete' }}
+            </button>
           </div>
         </div>
       </div>
@@ -40,8 +43,8 @@
     <section class="admin-card docs-card">
       <h2 class="section-title">Post Format Reference</h2>
       <p class="docs-intro">
-        Blog posts are Markdown files stored in <code>content/blog/{category}/{slug}.md</code>.
-        The URL becomes <code>/blog/{category}/{slug}</code>. All frontmatter fields below are optional
+        Blog posts are Markdown files stored in your <strong>Cloudflare R2</strong> bucket and served via API.
+        The URL is <code>/blog/{category}/{slug}</code>. All frontmatter fields below are optional
         unless marked <span class="req">required</span>.
       </p>
 
@@ -78,25 +81,24 @@ Your Markdown content here.</pre>
         </div>
       </div>
 
-      <h3 class="docs-sub">Creating via GitHub (recommended for production)</h3>
+      <h3 class="docs-sub">R2 environment variables</h3>
       <p class="docs-p">
-        Set <code>GITHUB_TOKEN</code>, <code>GITHUB_REPO</code> (format: <code>owner/repo</code>),
-        and optionally <code>GITHUB_BRANCH</code> (default: <code>main</code>) as environment variables.
-        The <strong>New Post</strong> page will then push directly to your repo, triggering a Vercel
-        redeploy automatically.
-      </p>
-
-      <h3 class="docs-sub">Creating locally</h3>
-      <p class="docs-p">
-        Create the file manually in <code>content/blog/{category}/{slug}.md</code> and commit/push.
-        The <strong>New Post</strong> page can also generate and download the <code>.md</code> file
-        for you to drop in.
+        Set these in <code>.env.local</code> (dev) or your Vercel project's environment variables:
+        <code>R2_ACCOUNT_ID</code>, <code>R2_ACCESS_KEY_ID</code>, <code>R2_SECRET_ACCESS_KEY</code>,
+        <code>R2_BUCKET_NAME</code> (format: <code>bucket-name</code> or <code>bucket-name/prefix</code>).
+        Your existing <code>VITE_R2_*</code> variables are used automatically as fallback.
       </p>
 
       <h3 class="docs-sub">Status field</h3>
       <p class="docs-p">
-        Posts with <code>status: "draft"</code> are hidden from all public lists and the blog index.
-        They are still accessible by direct URL. Omitting <code>status</code> is treated as published.
+        Posts with <code>status: "draft"</code> are hidden from all public lists and API responses.
+        Omitting <code>status</code> is treated as published.
+      </p>
+
+      <h3 class="docs-sub">Index recovery</h3>
+      <p class="docs-p">
+        If the post list ever gets out of sync, call <code>POST /api/admin/blog/rebuild-index</code>
+        (admin-authenticated) to scan the R2 bucket and rebuild the index from scratch.
       </p>
 
       <h3 class="docs-sub">Images</h3>
@@ -111,11 +113,30 @@ Your Markdown content here.</pre>
 <script setup lang="ts">
 definePageMeta({ middleware: 'admin', layout: 'admin' })
 
-const loading = ref(true)
-const { data: posts } = await useAsyncData('admin-blog-list', () =>
-  queryContent('/blog').sort({ date: -1 }).find().catch(() => [])
+import type { PostMeta } from '~/server/utils/r2'
+
+const toast = useState<{ message: string; type: 'success' | 'error' } | null>('admin-toast')
+
+const loading = ref(false)
+const deletingSlug = ref<string | null>(null)
+
+const { data: posts, refresh } = await useAsyncData('admin-blog-list', () =>
+  $fetch<PostMeta[]>('/api/admin/blog/posts').catch(() => [])
 )
-loading.value = false
+
+async function deletePost(slug: string) {
+  if (!confirm(`Delete "${slug}"? This cannot be undone.`)) return
+  deletingSlug.value = slug
+  try {
+    await $fetch(`/api/admin/blog/${encodeURIComponent(slug)}`, { method: 'DELETE' })
+    toast.value = { message: 'Post deleted', type: 'success' }
+    await refresh()
+  } catch (e: unknown) {
+    toast.value = { message: (e as { statusMessage?: string })?.statusMessage ?? 'Delete failed', type: 'error' }
+  } finally {
+    deletingSlug.value = null
+  }
+}
 
 function formatDate(d: string) {
   if (!d) return ''
@@ -205,8 +226,11 @@ function formatDate(d: string) {
 .chip-pub   { color: var(--accent); border-color: rgba(94,234,212,0.3); background: var(--accent-dim); }
 .meta-date  { font-size: 0.72rem; font-family: var(--font-mono); color: var(--text-3); }
 
-.post-row-actions { flex-shrink: 0; }
+.post-row-actions { flex-shrink: 0; display: flex; gap: var(--sp-2); }
 .btn-xs { font-size: 0.75rem; padding: 0.3em 0.8em; }
+.btn-danger { background: rgba(239,68,68,0.08); color: #f87171; border: 1px solid rgba(239,68,68,0.25); border-radius: var(--r-md); cursor: pointer; font-family: inherit; transition: all 0.15s; }
+.btn-danger:hover:not(:disabled) { background: rgba(239,68,68,0.15); }
+.btn-danger:disabled { opacity: 0.5; cursor: default; }
 
 /* Docs */
 .docs-card { display: flex; flex-direction: column; gap: var(--sp-4); }

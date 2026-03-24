@@ -2,6 +2,8 @@ import { person } from './config/site'
 import { config as loadEnv } from 'dotenv'
 import { resolve } from 'path'
 
+const AI_MANAGER_SRC = resolve(__dirname, './packages/ai-manager/src/index.ts')
+
 loadEnv({ path: resolve(__dirname, '.env.local') })
 
 export default defineNuxtConfig({
@@ -59,12 +61,37 @@ export default defineNuxtConfig({
     firebaseProjectId:   process.env.FIREBASE_PROJECT_ID ?? process.env.VITE_FIREBASE_PROJECT_ID ?? '',
     firebaseClientEmail: process.env.FIREBASE_CLIENT_EMAIL ?? '',
     firebasePrivateKey:  process.env.FIREBASE_PRIVATE_KEY ?? '',
+
+    // Cloudflare R2 — blog post storage (S3-compatible)
+    // Set these in .env.local (dev) or your deployment platform.
+    r2AccountId:       process.env.R2_ACCOUNT_ID       ?? process.env.VITE_R2_ACCOUNT_ID       ?? '',
+    r2AccessKeyId:     process.env.R2_ACCESS_KEY_ID     ?? process.env.VITE_R2_ACCESS_KEY_ID     ?? '',
+    r2SecretAccessKey: process.env.R2_SECRET_ACCESS_KEY ?? process.env.VITE_R2_SECRET_ACCESS_KEY ?? '',
+    r2BucketName:      process.env.R2_BUCKET_NAME       ?? process.env.VITE_R2_BUCKET_NAME       ?? '',
+
+    // AI provider keys — set these in .env.local (dev) or your deployment
+    // platform's environment variables (Vercel, Railway, etc.).
+    // Keys here act as a fallback if no key is saved in the admin UI.
+    anthropicApiKey: process.env.ANTHROPIC_API_KEY ?? '',
+    geminiApiKey:    process.env.GEMINI_API_KEY    ?? '',
+    openaiApiKey:    process.env.OPENAI_API_KEY    ?? '',
+    mistralApiKey:   process.env.MISTRAL_API_KEY   ?? '',
+    groqApiKey:      process.env.GROQ_API_KEY      ?? '',
+    cohereApiKey:    process.env.COHERE_API_KEY     ?? '',
+    ollamaBaseUrl:   process.env.OLLAMA_BASE_URL    ?? '',
+  },
+
+  alias: {
+    '@ilytat/ai-manager': AI_MANAGER_SRC,
   },
 
   nitro: {
     preset: 'vercel',
     externals: {
-      external: ['firebase-admin', 'firebase-admin/app', 'firebase-admin/firestore'],
+      external: [
+        'firebase-admin', 'firebase-admin/app', 'firebase-admin/firestore',
+        '@aws-sdk/client-s3',
+      ],
     },
   },
 

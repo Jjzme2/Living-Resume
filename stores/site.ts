@@ -47,6 +47,20 @@ export const useSiteStore = defineStore('site', {
 
     featuredProjects: (s) => s.projects.filter((p) => p.featured),
 
+    sortedExperience: (s) => {
+      const monthMap: Record<string, number> = {
+        january: 1, february: 2, march: 3, april: 4, may: 5, june: 6,
+        july: 7, august: 8, september: 9, october: 10, november: 11, december: 12,
+      }
+      function parseDateVal(str: string): number {
+        const parts = str.toLowerCase().trim().split(/\s+/)
+        const year = parseInt(parts.find(p => /^\d{4}$/.test(p)) ?? '0')
+        const month = monthMap[parts[0]] ?? 0
+        return year * 12 + month
+      }
+      return [...s.experience].sort((a, b) => parseDateVal(b.startDate) - parseDateVal(a.startDate))
+    },
+
     currentRole: (s) => {
       const current = s.experience.find((e) => !e.endDate)
       return current ?? s.experience[0] ?? null
