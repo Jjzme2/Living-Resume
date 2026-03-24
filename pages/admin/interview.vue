@@ -6,6 +6,51 @@
     <div v-if="loading" class="loading-block" />
 
     <template v-else>
+      <!-- Usage Stats -->
+      <div class="admin-card usage-card">
+        <div class="usage-header">
+          <h3 class="card-title">API Credit Usage</h3>
+          <span class="usage-model">{{ usageData?.pricing.model ?? 'claude-haiku-4-5' }}</span>
+        </div>
+        <div v-if="usageLoading" class="usage-loading">Loading usage data…</div>
+        <div v-else-if="usageData" class="usage-content">
+          <div class="usage-totals">
+            <div class="usage-stat">
+              <span class="usage-stat-value">{{ usageData.total.calls.toLocaleString() }}</span>
+              <span class="usage-stat-label">Total Conversations</span>
+            </div>
+            <div class="usage-stat">
+              <span class="usage-stat-value">{{ (usageData.total.input_tokens + usageData.total.output_tokens).toLocaleString() }}</span>
+              <span class="usage-stat-label">Total Tokens</span>
+            </div>
+            <div class="usage-stat">
+              <span class="usage-stat-value cost">${{ usageData.total.estimated_cost.toFixed(4) }}</span>
+              <span class="usage-stat-label">Est. Total Cost</span>
+            </div>
+          </div>
+          <div class="usage-chart">
+            <div class="chart-label">Last 14 Days</div>
+            <div class="chart-bars">
+              <div
+                v-for="day in usageData.daily"
+                :key="day.date"
+                class="chart-bar-col"
+                :title="`${day.date}: ${day.calls} calls, ${(day.input_tokens + day.output_tokens).toLocaleString()} tokens`"
+              >
+                <div
+                  class="chart-bar"
+                  :style="{ height: maxDailyTokens > 0 ? `${Math.max(2, ((day.input_tokens + day.output_tokens) / maxDailyTokens) * 60)}px` : '2px' }"
+                  :class="{ active: day.calls > 0 }"
+                />
+                <span class="chart-bar-date">{{ day.date.slice(5) }}</span>
+              </div>
+            </div>
+          </div>
+          <p class="usage-note">Pricing: ${{ usageData.pricing.input_per_m }}/M input · ${{ usageData.pricing.output_per_m }}/M output tokens</p>
+        </div>
+        <div v-else class="usage-empty">No usage data yet.</div>
+      </div>
+
       <!-- Tone -->
       <div class="admin-card">
         <h3 class="card-title">Tone</h3>
@@ -118,9 +163,22 @@ interface PersonaForm {
   faqs: Faq[]
 }
 
+interface DayUsage { date: string; input_tokens: number; output_tokens: number; calls: number; estimated_cost: number }
+interface UsageData {
+  total: { input_tokens: number; output_tokens: number; calls: number; estimated_cost: number }
+  daily: DayUsage[]
+  pricing: { input_per_m: number; output_per_m: number; model: string }
+}
+
 const loading = ref(true)
 const saving = ref(false)
 const confirmDelete = ref<number | null>(null)
+const usageLoading = ref(true)
+const usageData = ref<UsageData | null>(null)
+
+const maxDailyTokens = computed(() =>
+  Math.max(1, ...((usageData.value?.daily ?? []).map((d) => d.input_tokens + d.output_tokens))),
+)
 
 const form = reactive<PersonaForm>({
   tone: 'warm',
@@ -135,16 +193,20 @@ const toneOptions = [
 ]
 
 onMounted(async () => {
-  try {
-    const data = await $fetch<PersonaForm>('/api/admin/interview-persona')
-    form.tone = data.tone ?? 'warm'
-    form.customInstructions = data.customInstructions ?? ''
-    form.faqs = data.faqs ? data.faqs.map((f) => ({ ...f })) : []
-  } catch {
-    toast.value = { message: 'Failed to load persona config', type: 'error' }
-  } finally {
-    loading.value = false
-  }
+  await Promise.all([
+    $fetch<PersonaForm>('/api/admin/interview-persona')
+      .then((data) => {
+        form.tone = data.tone ?? 'warm'
+        form.customInstructions = data.customInstructions ?? ''
+        form.faqs = data.faqs ? data.faqs.map((f) => ({ ...f })) : []
+      })
+      .catch(() => { toast.value = { message: 'Failed to load persona config', type: 'error' } })
+      .finally(() => { loading.value = false }),
+    $fetch<UsageData>('/api/admin/chat-usage')
+      .then((data) => { usageData.value = data })
+      .catch(() => { /* non-critical, fail silently */ })
+      .finally(() => { usageLoading.value = false }),
+  ])
 })
 
 function addFaq() {
@@ -242,6 +304,27 @@ async function save() {
 @keyframes spin { to { transform: rotate(360deg); } }
 
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
+
+/* Usage stats */
+.usage-card { gap: var(--sp-4); }
+.usage-header { display: flex; align-items: center; justify-content: space-between; }
+.usage-model { font-size: 0.72rem; font-family: var(--font-mono); color: var(--text-3); background: var(--bg-surface); padding: 2px 8px; border-radius: var(--r-sm); border: 1px solid var(--border-xs); }
+.usage-loading { font-size: 0.82rem; color: var(--text-3); }
+.usage-empty { font-size: 0.82rem; color: var(--text-3); }
+.usage-totals { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-3); }
+.usage-stat { display: flex; flex-direction: column; gap: 4px; padding: var(--sp-3) var(--sp-4); background: var(--bg-surface); border-radius: var(--r-md); border: 1px solid var(--border-xs); }
+.usage-stat-value { font-size: 1.25rem; font-weight: 700; color: var(--text-1); font-family: var(--font-display); }
+.usage-stat-value.cost { color: var(--accent); }
+.usage-stat-label { font-size: 0.72rem; color: var(--text-3); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.06em; }
+.usage-chart { margin-top: var(--sp-2); }
+.chart-label { font-size: 0.72rem; color: var(--text-3); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: var(--sp-2); }
+.chart-bars { display: flex; align-items: flex-end; gap: 3px; height: 80px; }
+.chart-bar-col { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; height: 100%; justify-content: flex-end; }
+.chart-bar { width: 100%; background: var(--border-sm); border-radius: 2px 2px 0 0; transition: height var(--t-fast); min-height: 2px; }
+.chart-bar.active { background: var(--accent-dim); border: 1px solid rgba(94,234,212,0.3); }
+.chart-bar-date { font-size: 0.55rem; color: var(--text-3); font-family: var(--font-mono); white-space: nowrap; }
+.usage-note { font-size: 0.72rem; color: var(--text-3); font-family: var(--font-mono); margin-top: var(--sp-1); }
+@media (max-width: 600px) { .usage-totals { grid-template-columns: 1fr 1fr; } }
 
 @media (max-width: 600px) { .tone-grid { grid-template-columns: 1fr; } }
 </style>

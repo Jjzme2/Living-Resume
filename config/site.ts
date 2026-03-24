@@ -73,7 +73,7 @@ export const person = {
 // ── Business / LLC ───────────────────────────────────────────────
 
 export const business = {
-  name: '',              // e.g. "Zettler Solutions LLC"
+  name: 'ILYTAT LLC',              // e.g. "Zettler Solutions LLC"
   tagline: '',           // e.g. "Web solutions for small businesses."
   description: '',       // longer description
   url: '',               // business website if separate
@@ -187,10 +187,10 @@ export const siteSettings = {
   showBlog:      true,
   showContact:   true,
   showServices:  true,
-  showInterview: true,  // AI-powered "Ask Me Anything" chat
+  showInterview: false,  // AI-powered "Ask Me Anything" chat
 
   // Nav
-  siteUrl: 'https://jjzettler.com',   // update when domain is live
+  siteUrl: 'https://ilytat.com',   // update when domain is live
 
   // Copyright
   copyrightYear: 2026,

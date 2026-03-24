@@ -7,12 +7,14 @@
       <slot />
     </main>
     <SiteFooter />
+    <CommandPalette />
   </div>
 </template>
 
 <script setup lang="ts">
 const route = useRoute()
 const { currentTheme, loadPublicTheme } = useTheme()
+const { toggle: paletteToggle } = useCommandPalette()
 
 // Apply theme attribute to <html> on every render
 useHead(() => ({
@@ -20,6 +22,14 @@ useHead(() => ({
     'data-theme': currentTheme.value === 'midnight' ? '' : currentTheme.value,
   },
 }))
+
+// Global ⌘K / Ctrl+K shortcut
+useEventListener('keydown', (e: KeyboardEvent) => {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+    e.preventDefault()
+    paletteToggle()
+  }
+})
 
 // Load the admin-chosen public theme on mount
 onMounted(async () => {
