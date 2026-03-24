@@ -60,12 +60,12 @@ export const person = {
   name: 'Jj Zettler',
   fullName: 'John Zettler Jr',
   initials: 'JZ',
-  title: '',
-  tagline: 'Building things people love',           // e.g. "Building things people love."
-  location: 'Kankakee County, Illinois',          // e.g. "Northeast Ohio"
-  email: 'Jjzettler@gmail.com',             // e.g. "jj@example.com"
-  phone: '',             // e.g. "+1 (555) 000-0000"
-  bio: '',               // 2–4 sentence personal statement for About section
+  title: 'Web Developer',
+  tagline: 'Building resilient web applications that align with both business requirements and user expectations.',
+  location: 'Manteno, Illinois',
+  email: 'JjZettler@gmail.com',
+  phone: '(708) 860-8681',
+  bio: 'With proficiency as a full stack developer in ColdFusion, Vue, and MySQL, I possess the capabilities to adeptly manage server-side logic, design dynamic interfaces, and efficiently handle databases. This diverse skill set equips me to develop resilient web applications that align with both business requirements and user expectations. I look forward to enhancing my expertise further by exploring new technologies and innovative problem-solving methodologies in the field of development.',
   avatarUrl: '',         // path to /public/ image or external URL
   resumePdfUrl: '',      // optional: external hosted PDF fallback
 }
@@ -98,45 +98,68 @@ export const social: SocialLinks = {
 // ── Skills ───────────────────────────────────────────────────────
 
 export const skills: Skill[] = [
-  // Examples — replace with your own:
-  // { name: 'Nuxt / Vue',       category: 'Frontend',  level: 85 },
-  // { name: 'TypeScript',       category: 'Frontend',  level: 78 },
-  // { name: 'Node.js',          category: 'Backend',   level: 75 },
-  // { name: 'Nitro',            category: 'Backend',   level: 72 },
-  // { name: 'PostgreSQL',       category: 'Backend',   level: 65 },
-  // { name: 'Pinia',            category: 'Frontend',  level: 82 },
-  // { name: 'Git',              category: 'Tools',     level: 80 },
-  // { name: 'Vercel / Deploy',  category: 'DevOps',    level: 70 },
+  { name: 'HTML',        category: 'Frontend', level: 85 },
+  { name: 'CSS',         category: 'Frontend', level: 80 },
+  { name: 'JavaScript',  category: 'Frontend', level: 80 },
+  { name: 'Vue',         category: 'Frontend', level: 82 },
+  { name: 'MySQL',       category: 'Backend',  level: 78 },
+  { name: 'MSSQL',       category: 'Backend',  level: 72 },
+  { name: 'ColdFusion',  category: 'Backend',  level: 75 },
+  { name: 'CMS (Mura)',  category: 'Tools',    level: 70 },
+  { name: 'FTP',         category: 'Tools',    level: 75 },
+  { name: 'VDI',         category: 'Tools',    level: 68 },
 ]
 
 // ── Experience ───────────────────────────────────────────────────
 
 export const experience: ExperienceItem[] = [
-  // Example:
-  // {
-  //   company: 'Company Name',
-  //   role: 'Developer I',
-  //   startDate: 'Jan 2022',
-  //   endDate: 'Dec 2023',
-  //   location: 'Remote',
-  //   type: 'full-time',
-  //   highlights: [
-  //     'Built X resulting in Y improvement',
-  //     'Led initiative to modernize Z',
-  //   ],
-  // },
+  {
+    company: 'Cleveland Steel Container Corporation',
+    role: 'Machine Operator – DownStacker/Lithography',
+    startDate: 'March 2024',
+    location: 'Illinois',
+    type: 'full-time',
+    highlights: [
+      'Oversaw material quality and ensured client expectations were consistently met',
+      'Prioritized equipment upkeep to ensure smooth operation and a high standard of cleanliness',
+      'Maintained a primary focus on workplace safety throughout all operations',
+    ],
+  },
+  {
+    company: 'Mind-Over-Data',
+    role: 'Developer I',
+    startDate: 'June 2022',
+    endDate: 'July 2023',
+    type: 'full-time',
+    highlights: [
+      'Utilized FileZilla and VDI interfaces for remote computing control',
+      'Adapted code to fulfill client needs and managed ticketing systems',
+      'Developed and maintained sites using the CMS Mura platform',
+    ],
+  },
+  {
+    company: 'Noodles and Company',
+    role: 'Assistant General Manager',
+    startDate: 'April 2019',
+    endDate: 'October 2021',
+    type: 'full-time',
+    highlights: [
+      'Collaborated with the General Manager to oversee daily restaurant operations',
+      'Managed employee training, Excel spreadsheets, and daily financial records',
+      'Engaged with guests to ensure a high standard of satisfaction',
+    ],
+  },
 ]
 
 // ── Education ────────────────────────────────────────────────────
 
 export const education: EducationItem[] = [
-  // Example:
-  // {
-  //   institution: 'University Name',
-  //   degree: 'Associate of Applied Science',
-  //   field: 'Information Technology',
-  //   graduationYear: '2021',
-  // },
+  {
+    institution: 'Hillcrest High School',
+    degree: 'General Studies',
+    graduationYear: '2010',
+    honors: 'Country Club Hills, Illinois',
+  },
 ]
 
 // ── Projects ─────────────────────────────────────────────────────
