@@ -64,7 +64,7 @@ export const person = {
   tagline: 'Building resilient web applications that align with both business requirements and user expectations.',
   location: 'Manteno, Illinois',
   email: 'JjZettler@gmail.com',
-  phone: '(708) 860-8681',
+  phone: '',             // kept private — stored in NUXT_PRIVATE_PHONE env var
   bio: 'With proficiency as a full stack developer in ColdFusion, Vue, and MySQL, I possess the capabilities to adeptly manage server-side logic, design dynamic interfaces, and efficiently handle databases. This diverse skill set equips me to develop resilient web applications that align with both business requirements and user expectations. I look forward to enhancing my expertise further by exploring new technologies and innovative problem-solving methodologies in the field of development.',
   avatarUrl: '',         // path to /public/ image or external URL
   resumePdfUrl: '',      // optional: external hosted PDF fallback
@@ -188,6 +188,7 @@ export const siteSettings = {
   showContact:   true,
   showServices:  true,
   showInterview: false,  // AI-powered "Ask Me Anything" chat
+  showReferences: true, // Shows "References available on request" note (actual data is private)
 
   // Nav
   siteUrl: 'https://ilytat.com',   // update when domain is live

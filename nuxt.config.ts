@@ -59,6 +59,9 @@ export default defineNuxtConfig({
     firebaseProjectId:   process.env.FIREBASE_PROJECT_ID ?? process.env.VITE_FIREBASE_PROJECT_ID ?? '',
     firebaseClientEmail: process.env.FIREBASE_CLIENT_EMAIL ?? '',
     firebasePrivateKey:  process.env.FIREBASE_PRIVATE_KEY ?? '',
+    // Private contact/reference data — never exposed to the client
+    privatePhone:        process.env.NUXT_PRIVATE_PHONE ?? '',
+    privateReferences:   process.env.NUXT_PRIVATE_REFERENCES ?? '[]',
   },
 
   nitro: {
