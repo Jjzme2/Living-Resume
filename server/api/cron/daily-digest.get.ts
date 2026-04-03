@@ -141,7 +141,7 @@ export default defineEventHandler(async (event) => {
 
   const resend = new Resend(apiKey)
   await resend.emails.send({
-    from: 'digest@jjzettler.com',
+    from: 'no-reply@ilytat.com',
     to: toEmail,
     subject: `Portfolio Digest — ${yesterdayViews ?? 0} views yesterday`,
     html,
